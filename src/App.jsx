@@ -256,8 +256,8 @@ function Landing({svcs,stys,user,isA,onRes,onLog,onAcc,onAdm,salonConfig}) {
   const insta=salonConfig?.instagram||'@eme.barber.studio'
 
   return <div style={{paddingBottom:88}}>
-    <div style={{position:'relative',background:'#1A1A1A'}}>
-      <img src={HERO} alt="" style={{width:'100%',display:'block'}} onError={e=>{e.target.style.display='none';e.target.parentElement.style.minHeight='260px'}}/>
+    <div style={{position:'relative',height:260,overflow:'hidden',background:'#1A1A1A'}}>
+      <img src={HERO} alt="" style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'center 20%'}} onError={e=>{e.target.style.display='none';e.target.parentElement.style.background='#1A1A1A'}}/>
       <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(0,0,0,0.10) 0%,rgba(0,0,0,0.72) 100%)'}}/>
 
       {user&&<button onClick={onAcc} style={{position:'absolute',top:14,left:14,zIndex:3,width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.92)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 10px rgba(0,0,0,0.15)'}}>
@@ -466,7 +466,9 @@ setSlots(unionSlots)
   const confirm=async()=>{
     if(!svc||!sty||!date||!time)return;setBk(true)
     const {error}=await supabase.from('appointments').insert({user_id:user.id,stylist_id:sty.id,service_id:svc.id,appointment_date:toK(date),appointment_time:time,end_time:aM(time,svc.duration),notes:note||null,status:'confirmed'})
-    setBk(false);if(!error)onDone({service:svc,stylist:sty,date,time})
+    setBk(false)
+    if(error){alert('Error al reservar: '+error.message);return}
+    onDone({service:svc,stylist:sty,date,time})
   }
 
   const pop=svcs.filter(s=>s.category==='popular'),oth=svcs.filter(s=>s.category!=='popular')
