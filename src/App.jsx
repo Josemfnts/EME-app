@@ -76,6 +76,12 @@ const getSlotsForDay = (date, stylistId, schedules, appointments, blockedSlots, 
     .filter(b => b.blocked_date === dk && b.stylist_id === stylistId)
     .forEach(b => { let c = b.start_time.slice(0,5); const e = b.end_time.slice(0,5); while(c<e){taken.add(c);c=aM(c,30)} })
 
+  // Pausa para comer
+  if(sched?.break_start && sched?.break_end){
+    let c = sched.break_start.slice(0,5); const e = sched.break_end.slice(0,5)
+    while(c<e){taken.add(c);c=aM(c,30)}
+  }
+
   return allSlots.filter(s => {
     const end = aM(s, svcDuration)
     if(end > dayClose) return false
@@ -257,7 +263,7 @@ function Landing({svcs,stys,user,isA,onRes,onLog,onAcc,onAdm,salonConfig}) {
 
   return <div style={{paddingBottom:88}}>
     <div style={{position:'relative',height:260,overflow:'hidden',background:'#1A1A1A'}}>
-      <img src={HERO} alt="" style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'center 20%'}} onError={e=>{e.target.style.display='none';e.target.parentElement.style.background='#1A1A1A'}}/>
+      <img src={HERO} alt="" style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'center 10%'}} onError={e=>{e.target.style.display='none';e.target.parentElement.style.background='#1A1A1A'}}/>
       <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(0,0,0,0.10) 0%,rgba(0,0,0,0.72) 100%)'}}/>
 
       {user&&<button onClick={onAcc} style={{position:'absolute',top:14,left:14,zIndex:3,width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.92)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 10px rgba(0,0,0,0.15)'}}>
@@ -666,7 +672,9 @@ function WeeklyScheduleModal({stylist, onClose, onSaved}) {
     day_of_week: d,
     active: d!==0,
     start_time: '09:00',
-    end_time: DEFAULT_CLOSE[d]
+    end_time: DEFAULT_CLOSE[d],
+    break_start: null,
+    break_end: null
   })))
   const [saving, setSaving] = useState(false)
   const [loaded, setLoaded] = useState(false)
@@ -677,8 +685,8 @@ function WeeklyScheduleModal({stylist, onClose, onSaved}) {
         setRows(DAYS.map(d=>{
           const existing = data.find(r=>r.day_of_week===d)
           return existing
-            ? {day_of_week:d, active:existing.active, start_time:existing.start_time.slice(0,5), end_time:existing.end_time.slice(0,5)}
-            : {day_of_week:d, active:d!==0, start_time:'09:00', end_time:DEFAULT_CLOSE[d]}
+            ? {day_of_week:d, active:existing.active, start_time:existing.start_time.slice(0,5), end_time:existing.end_time.slice(0,5), break_start:existing.break_start?.slice(0,5)||null, break_end:existing.break_end?.slice(0,5)||null}
+            : {day_of_week:d, active:d!==0, start_time:'09:00', end_time:DEFAULT_CLOSE[d], break_start:null, break_end:null}
         }))
       }
       setLoaded(true)
@@ -696,7 +704,9 @@ function WeeklyScheduleModal({stylist, onClose, onSaved}) {
         day_of_week: row.day_of_week,
         active: row.active,
         start_time: row.start_time,
-        end_time: row.end_time
+        end_time: row.end_time,
+        break_start: row.break_start || null,
+        break_end: row.break_end || null
       }, {onConflict: 'stylist_id,day_of_week'})
     }
     setSaving(false)
@@ -738,23 +748,47 @@ function WeeklyScheduleModal({stylist, onClose, onSaved}) {
             </div>
           </div>
           {/* Selectores hora */}
-          {row.active&&<div style={{display:'flex',gap:8,padding:'8px 14px 12px',background:'var(--white)',borderTop:'1px solid var(--border)'}}>
-            <div style={{flex:1}}>
-              <label style={{fontSize:11,fontWeight:600,color:'var(--text3)',display:'block',marginBottom:4}}>ENTRADA</label>
-              <select value={row.start_time} onChange={e=>{update(row.day_of_week,'start_time',e.target.value);if(e.target.value>=row.end_time)update(row.day_of_week,'end_time',aM(e.target.value,30))}} style={{width:'100%',padding:'8px 10px',fontSize:13,border:'1px solid var(--border2)',borderRadius:8,background:'var(--bg)',color:'var(--text)',fontFamily:'inherit',cursor:'pointer',paddingRight:28}}>
-                {allSlots.map(h=><option key={h} value={h}>{h}</option>)}
-              </select>
-            </div>
-            <div style={{flex:1}}>
-              <label style={{fontSize:11,fontWeight:600,color:'var(--text3)',display:'block',marginBottom:4}}>SALIDA</label>
-              <select value={row.end_time} onChange={e=>update(row.day_of_week,'end_time',e.target.value)} style={{width:'100%',padding:'8px 10px',fontSize:13,border:'1px solid var(--border2)',borderRadius:8,background:'var(--bg)',color:'var(--text)',fontFamily:'inherit',cursor:'pointer',paddingRight:28}}>
-                {endSlots(row.start_time).map(h=><option key={h} value={h}>{h}</option>)}
-              </select>
-            </div>
-            <div style={{display:'flex',alignItems:'flex-end',paddingBottom:2}}>
-              <div style={{padding:'8px 10px',background:'var(--purple-bg)',borderRadius:8,fontSize:12,fontWeight:700,color:'var(--purple)',whiteSpace:'nowrap'}}>
-                {row.start_time}–{row.end_time}
+          {row.active&&<div style={{padding:'8px 14px 12px',background:'var(--white)',borderTop:'1px solid var(--border)'}}>
+            <div style={{display:'flex',gap:8,marginBottom:8}}>
+              <div style={{flex:1}}>
+                <label style={{fontSize:11,fontWeight:600,color:'var(--text3)',display:'block',marginBottom:4}}>ENTRADA</label>
+                <select value={row.start_time} onChange={e=>{update(row.day_of_week,'start_time',e.target.value);if(e.target.value>=row.end_time)update(row.day_of_week,'end_time',aM(e.target.value,30))}} style={{width:'100%',padding:'8px 10px',fontSize:13,border:'1px solid var(--border2)',borderRadius:8,background:'var(--bg)',color:'var(--text)',fontFamily:'inherit',cursor:'pointer',paddingRight:28}}>
+                  {allSlots.map(h=><option key={h} value={h}>{h}</option>)}
+                </select>
               </div>
+              <div style={{flex:1}}>
+                <label style={{fontSize:11,fontWeight:600,color:'var(--text3)',display:'block',marginBottom:4}}>SALIDA</label>
+                <select value={row.end_time} onChange={e=>update(row.day_of_week,'end_time',e.target.value)} style={{width:'100%',padding:'8px 10px',fontSize:13,border:'1px solid var(--border2)',borderRadius:8,background:'var(--bg)',color:'var(--text)',fontFamily:'inherit',cursor:'pointer',paddingRight:28}}>
+                  {endSlots(row.start_time).map(h=><option key={h} value={h}>{h}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{borderTop:'1px dashed var(--border)',paddingTop:8}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:row.break_start?6:0}}>
+                <label style={{fontSize:11,fontWeight:600,color:'var(--text3)'}}>PAUSA (COMIDA)</label>
+                <button onClick={()=>update(row.day_of_week,'break_start',row.break_start?null:'14:00') || update(row.day_of_week,'break_end',row.break_end?null:'16:00')} style={{fontSize:11,fontWeight:600,color:row.break_start?'var(--red)':'var(--purple)',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit'}}>
+                  {row.break_start?'Quitar pausa':'+ Añadir pausa'}
+                </button>
+              </div>
+              {row.break_start&&<div style={{display:'flex',gap:8}}>
+                <div style={{flex:1}}>
+                  <label style={{fontSize:10,color:'var(--text3)',display:'block',marginBottom:3}}>INICIO PAUSA</label>
+                  <select value={row.break_start} onChange={e=>{update(row.day_of_week,'break_start',e.target.value);if(e.target.value>=row.break_end)update(row.day_of_week,'break_end',aM(e.target.value,30))}} style={{width:'100%',padding:'7px 10px',fontSize:13,border:'1px solid var(--border2)',borderRadius:8,background:'var(--bg)',color:'var(--text)',fontFamily:'inherit',cursor:'pointer',paddingRight:28}}>
+                    {allSlots.filter(h=>h>row.start_time&&h<row.end_time).map(h=><option key={h} value={h}>{h}</option>)}
+                  </select>
+                </div>
+                <div style={{flex:1}}>
+                  <label style={{fontSize:10,color:'var(--text3)',display:'block',marginBottom:3}}>FIN PAUSA</label>
+                  <select value={row.break_end} onChange={e=>update(row.day_of_week,'break_end',e.target.value)} style={{width:'100%',padding:'7px 10px',fontSize:13,border:'1px solid var(--border2)',borderRadius:8,background:'var(--bg)',color:'var(--text)',fontFamily:'inherit',cursor:'pointer',paddingRight:28}}>
+                    {allSlots.filter(h=>h>row.break_start&&h<=row.end_time).map(h=><option key={h} value={h}>{h}</option>)}
+                  </select>
+                </div>
+                <div style={{display:'flex',alignItems:'flex-end',paddingBottom:2}}>
+                  <div style={{padding:'7px 8px',background:'var(--orange-bg)',borderRadius:8,fontSize:11,fontWeight:700,color:'var(--orange)',whiteSpace:'nowrap'}}>
+                    {row.break_start}–{row.break_end}
+                  </div>
+                </div>
+              </div>}
             </div>
           </div>}
         </div>
