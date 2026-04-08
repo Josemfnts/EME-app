@@ -85,7 +85,7 @@ const getSlotsForDay = (date, stylistId, schedules, appointments, blockedSlots, 
   })
 }
 
-const HERO = ['images/hero-1.jpg','images/hero-2.jpg','images/hero-3.jpg','images/hero-4.jpg']
+const HERO = 'images/hero-1.jpg'
 const GALL = ['images/work-1.jpg','images/work-2.jpg','images/work-3.jpg','images/work-4.jpg','images/work-5.jpg','images/work-6.jpg']
 
 // ═══ ATOMS ════════════════════════════════════════════════════════════════════
@@ -245,9 +245,7 @@ function PWAPrompt({ onClose }) {
 }
 // ═══ LANDING ══════════════════════════════════════════════════════════════════
 function Landing({svcs,stys,user,isA,onRes,onLog,onAcc,onAdm,salonConfig}) {
-  const [hi,setHi]=useState(0)
   const [tab,setTab]=useState('servicios')
-  useEffect(()=>{const t=setInterval(()=>setHi(i=>(i+1)%HERO.length),4500);return()=>clearInterval(t)},[])
 
   const now=new Date(),dow=now.getDay(),hr=now.getHours()+now.getMinutes()/60
   const isOpen=dow>=1&&dow<=5?hr>=9&&hr<20:dow===6?hr>=9&&hr<14:false
@@ -259,19 +257,15 @@ function Landing({svcs,stys,user,isA,onRes,onLog,onAcc,onAdm,salonConfig}) {
 
   return <div style={{paddingBottom:88}}>
     <div style={{position:'relative',height:260,overflow:'hidden',background:'#1A1A1A'}}>
-      {HERO.map((src,i)=><div key={i} style={{position:'absolute',inset:0,opacity:hi===i?1:0,transition:'opacity .85s'}}>
-        <img src={src} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.style.display='none';e.target.parentElement.style.background=`hsl(${35+i*5},20%,${12+i*3}%)`}}/>
-      </div>)}
+      <img src={HERO} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.style.display='none';e.target.parentElement.style.background='#1A1A1A'}}/>
       <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(0,0,0,0.10) 0%,rgba(0,0,0,0.72) 100%)'}}/>
-      <div style={{position:'absolute',bottom:14,left:'50%',transform:'translateX(-50%)',display:'flex',gap:6,zIndex:3}}>
-        {HERO.map((_,i)=><button key={i} onClick={()=>setHi(i)} style={{width:hi===i?20:6,height:6,borderRadius:3,border:'none',cursor:'pointer',background:'#fff',opacity:hi===i?1:0.5,transition:'all .3s'}}/>)}
-      </div>
+
       {user&&<button onClick={onAcc} style={{position:'absolute',top:14,left:14,zIndex:3,width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.92)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 10px rgba(0,0,0,0.15)'}}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       </button>}
       <div style={{position:'absolute',top:14,right:14,zIndex:3,display:'flex',gap:8}}>
         {isA&&<button onClick={onAdm} style={{height:36,borderRadius:18,background:'rgba(255,255,255,0.92)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 10px rgba(0,0,0,0.15)',padding:'0 14px',fontSize:12,fontWeight:700,fontFamily:'inherit',color:'var(--purple)'}}>⚙ Admin</button>}
-        {!user&&<button onClick={onLog} style={{height:36,borderRadius:18,background:'rgba(255,255,255,0.92)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 10px rgba(0,0,0,0.15)',padding:'0 14px',fontSize:12,fontWeight:600,fontFamily:'inherit',color:'var(--text)'}}>Iniciar sesión</button>}
+        {!user&&<button onClick={onLog} style={{height:36,borderRadius:18,background:'rgba(255,255,255,0.92)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 10px rgba(0,0,0,0.15)',padding:'0 14px',fontSize:12,fontWeight:600,fontFamily:'inherit',color:'#0F0F0F'}}>Iniciar sesión</button>}
       </div>
     </div>
 
