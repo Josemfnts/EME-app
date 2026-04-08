@@ -263,7 +263,7 @@ function Landing({svcs,stys,user,isA,onRes,onLog,onAcc,onAdm,salonConfig}) {
 
   return <div style={{paddingBottom:88}}>
     <div style={{position:'relative',height:260,overflow:'hidden',background:'#1A1A1A'}}>
-      <img src={HERO} alt="" style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'center 30%'}} onError={e=>{e.target.style.display='none';e.target.parentElement.style.background='#1A1A1A'}}/>
+      <img src={HERO} alt="" style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'center 33%'}} onError={e=>{e.target.style.display='none';e.target.parentElement.style.background='#1A1A1A'}}/>
       <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(0,0,0,0.10) 0%,rgba(0,0,0,0.72) 100%)'}}/>
 
       {user&&<button onClick={onAcc} style={{position:'absolute',top:14,left:14,zIndex:3,width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.92)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 10px rgba(0,0,0,0.15)'}}>
